@@ -18,6 +18,7 @@ public interface EmployeeRepository extends JpaRepository<Employees, Integer> {
             "LEFT JOIN e.manager m")
     List<EmployeeDTO> findAllEmployeesWithDetails();
 
+    Employees findByEname(String ename); // Custom method to find employee by name
 
 
 }

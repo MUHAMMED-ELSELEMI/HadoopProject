@@ -21,8 +21,5 @@ public class Departments {
     private String dname;
     private String loc;
 
-    //@OneToMany(mappedBy = "department", cascade = CascadeType.ALL, orphanRemoval = true)
-    //private List<Employees> employees ;
 
-    // getters and setters
 }

@@ -7,7 +7,9 @@ import com.sau.hadoopassignment.Repositories.DepartmentRepository;
 import com.sau.hadoopassignment.Repositories.EmployeeRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 
@@ -20,48 +22,100 @@ public class EmployeeService {
     @Autowired
     private DepartmentRepository departmentRepository;
 
+    @Autowired
+    private ImageService hdfsService;  // Service to handle HDFS interactions
+
     public List<EmployeeDTO> getAllEmployees() {
-        return employeeRepository.findAllEmployeesWithDetails();
+        List<EmployeeDTO> employees = employeeRepository.findAllEmployeesWithDetails();
+        // Optionally set full image path if needed
+        employees.forEach(emp -> emp.setImg(emp.getImg()));
+        return employees;
     }
+
 
     public Optional<EmployeeDTO> getEmployeeById(Integer empno) {
-        return employeeRepository.findById(empno).map(this::convertToDTO);
+        return employeeRepository.findById(empno)
+                .map(this::convertToDTO)
+                .map(emp -> {
+                    emp.setImg(emp.getImg());
+                    return emp;
+                });
     }
 
-    public EmployeeDTO createEmployee(EmployeeDTO employeeDTO) {
+    public EmployeeDTO createEmployee(EmployeeDTO employeeDTO) throws IOException {
         Employees employee = convertToEntity(employeeDTO);
         employeeRepository.save(employee);
         return convertToDTO(employee);
     }
 
-    public Optional<EmployeeDTO> updateEmployee(Integer empno, EmployeeDTO employeeDTO) {
+    // New method to handle image upload
+    public String uploadEmployeeImage(MultipartFile file) throws IOException {
+        // Check if the file is provided
+        if (file != null && !file.isEmpty()) {
+            // Upload image to HDFS and return the image name
+            return hdfsService.uploadImage(file);
+        }
+        throw new IllegalArgumentException("File must not be null or empty");
+    }
+
+    public void updateEmployeeImage(Integer empno, String imageName) {
+        employeeRepository.findById(empno).ifPresent(existingEmployee -> {
+            existingEmployee.setImg(imageName); // Update image name
+            employeeRepository.save(existingEmployee); // Save the changes
+        });
+    }
+
+    public Optional<EmployeeDTO> updateEmployee(Integer empno, EmployeeDTO employeeDTO) throws IOException {
         return employeeRepository.findById(empno).map(existingEmployee -> {
+            // Update existing employee fields
             existingEmployee.setEname(employeeDTO.getEname());
             existingEmployee.setJob(employeeDTO.getJob());
             existingEmployee.setHiredate(employeeDTO.getHiredate());
             existingEmployee.setSal(employeeDTO.getSal());
             existingEmployee.setComm(employeeDTO.getComm());
-            existingEmployee.setImg(employeeDTO.getImg());
 
-            // Set department
-            Departments department = departmentRepository.findById(Integer.parseInt(employeeDTO.getDept()))
-                    .orElseThrow(() -> new RuntimeException("Department not found"));
-            existingEmployee.setDepartment(department);
+            // Set department by name
+            if (employeeDTO.getDept() != null) {
+                Departments department = departmentRepository.findByDname(employeeDTO.getDept());
+                if (department != null) {
+                    existingEmployee.setDepartment(department);
+                } else {
+                    throw new RuntimeException("Department not found");
+                }
+            }
 
-            // Set manager if exists
+            // Set manager by name if exists
             if (employeeDTO.getMgr() != null) {
-                Employees manager = employeeRepository.findById(Integer.parseInt(employeeDTO.getMgr()))
-                        .orElse(null);
-                existingEmployee.setManager(manager);
+                Employees manager = employeeRepository.findByEname(employeeDTO.getMgr());
+                if (manager != null) {
+                    existingEmployee.setManager(manager);
+                } else {
+                    throw new RuntimeException("Manager not found");
+                }
             }
 
             employeeRepository.save(existingEmployee);
             return convertToDTO(existingEmployee);
         });
     }
+    // New method to handle image upload
+
 
     public void deleteEmployee(Integer empno) {
-        employeeRepository.deleteById(empno);
+        employeeRepository.findById(empno).ifPresent(employee -> {
+            // Delete the image associated with this employee
+            String imageName = employee.getImg();
+            if (imageName != null) {
+                try {
+                    hdfsService.deleteImage(imageName);
+                } catch (IOException e) {
+                    throw new RuntimeException("Failed to delete image from HDFS", e);
+                }
+            }
+
+            // Now delete the employee record
+            employeeRepository.delete(employee);
+        });
     }
 
     private EmployeeDTO convertToDTO(Employees employee) {
@@ -86,18 +140,17 @@ public class EmployeeService {
         employee.setHiredate(employeeDTO.getHiredate());
         employee.setSal(employeeDTO.getSal());
         employee.setComm(employeeDTO.getComm());
-        employee.setImg(employeeDTO.getImg());
+        employee.setImg(employeeDTO.getImg()); // Set image path
 
-        // Set department
-        Departments department = departmentRepository.findById(Integer.parseInt(employeeDTO.getDept()))
-                .orElseThrow(() -> new RuntimeException("Department not found"));
-        employee.setDepartment(department);
-
-        // Set manager if exists
         if (employeeDTO.getMgr() != null) {
-            Employees manager = employeeRepository.findById(Integer.parseInt(employeeDTO.getMgr()))
-                    .orElse(null);
-            employee.setManager(manager);
+            Employees manager = employeeRepository.findByEname(employeeDTO.getMgr());
+            employee.setManager(manager); // Set the found manager
+        }
+
+        // Lookup department by name if provided
+        if (employeeDTO.getDept() != null) {
+            Departments department = departmentRepository.findByDname(employeeDTO.getDept());
+            employee.setDepartment(department); // Set the found department
         }
 
         return employee;

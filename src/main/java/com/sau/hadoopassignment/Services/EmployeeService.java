@@ -73,7 +73,7 @@ public class EmployeeService {
             existingEmployee.setHiredate(employeeDTO.getHiredate());
             existingEmployee.setSal(employeeDTO.getSal());
             existingEmployee.setComm(employeeDTO.getComm());
-
+            existingEmployee.setImg(employeeDTO.getImg());
             // Set department by name
             if (employeeDTO.getDept() != null) {
                 Departments department = departmentRepository.findByDname(employeeDTO.getDept());
@@ -109,7 +109,7 @@ public class EmployeeService {
                 try {
                     hdfsService.deleteImage(imageName);
                 } catch (IOException e) {
-                    throw new RuntimeException("Failed to delete image from HDFS", e);
+                    throw new RuntimeException(e);
                 }
             }
 

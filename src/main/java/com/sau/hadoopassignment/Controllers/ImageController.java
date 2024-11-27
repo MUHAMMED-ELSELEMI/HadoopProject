@@ -9,48 +9,57 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
 import java.util.Optional;
 
-@RestController
-@RequestMapping("/api/employees/{empno}/images")
+@Controller
+@RequestMapping("/employees/{empno}/images")
 public class ImageController {
+
     @Autowired
     private ImageService imageService;
+
     @Autowired
     private EmployeeService employeeService;
 
+    // Get employee image and display it
     @GetMapping
-    public ResponseEntity<ByteArrayResource> getEmployeeImage(@PathVariable Integer empno) throws IOException {
+    public ResponseEntity<byte[]> getEmployeeImage(@PathVariable Integer empno) throws IOException {
         Optional<EmployeeDTO> employee = employeeService.getEmployeeById(empno);
         if (!employee.isPresent() || employee.get().getImg() == null) {
-            return ResponseEntity.notFound().build();
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Image not found");
         }
 
-        String imagePath = employee.get().getFullImagePath(); // Use the image name from EmployeeDTO
+        String imagePath = employee.get().getFullImagePath();
         byte[] imageBytes = imageService.getImageFromHDFS(imagePath);
-        ByteArrayResource resource = new ByteArrayResource(imageBytes);
 
-        return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + empno + ".jpg")
-                .contentType(MediaType.IMAGE_JPEG)
-                .contentLength(imageBytes.length)
-                .body(resource);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.IMAGE_JPEG);  // Set content type based on the image type
+
+        return new ResponseEntity<>(imageBytes, headers, HttpStatus.OK);
     }
 
+
+    // Upload image for employee
     @PostMapping(consumes = {"multipart/form-data"})
-    public ResponseEntity<String> uploadImage(@PathVariable Integer empno, @RequestParam("file") MultipartFile file) {
+    public String uploadImage(@PathVariable Integer empno, @RequestParam("file") MultipartFile file, Model model) {
         try {
             String imageName = imageService.uploadImage(file); // Upload image and get its name
             employeeService.updateEmployeeImage(empno, imageName); // Update the employee with the new image name
-            return ResponseEntity.ok(imageName); // Return the image name
+            model.addAttribute("success", "Image uploaded successfully!");
+            return "redirect:/employees/" + empno + "/images"; // Redirect to the employee's image page
         } catch (IOException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error uploading image");
+            model.addAttribute("error", "Error uploading image: " + e.getMessage());
+            return "error"; // Return to error page in case of upload failure
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Error: " + e.getMessage());
+            model.addAttribute("error", "Error: " + e.getMessage());
+            return "error"; // Return to error page in case of other exceptions
         }
     }
 }

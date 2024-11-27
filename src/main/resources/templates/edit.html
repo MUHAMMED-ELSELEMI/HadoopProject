@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Employee</title>
+</head>
+<body>
+<h1>Edit Employee</h1>
+<form th:action="@{/employees/edit/{empno}(empno=${employee.empno})}" method="post" enctype="multipart/form-data">
+    <input type="hidden" name="empno" th:value="${employee.empno}">
+    <label for="ename">Employee Name</label>
+    <input type="text" id="ename" name="ename" th:value="${employee.ename}" required>
+    <br>
+    <label for="job">Job</label>
+    <input type="text" id="job" name="job" th:value="${employee.job}" required>
+    <br>
+    <label for="mgr">Manager</label>
+    <input type="text" id="mgr" name="mgr" th:value="${employee.mgr}" required>
+    <br>
+    <label for="hiredate">Hire Date</label>
+    <input type="date" id="hiredate" name="hiredate" th:value="${employee.hiredate}" required>
+    <br>
+    <label for="sal">Salary</label>
+    <input type="number" id="sal" name="sal" th:value="${employee.sal}" required>
+    <br>
+    <label for="comm">Commission</label>
+    <input type="number" id="comm" name="comm" th:value="${employee.comm}">
+    <br>
+    <label for="dept">Department</label>
+    <input type="text" id="dept" name="dept" th:value="${employee.dept}" required>
+    <br>
+    <label for="file">Upload Image</label>
+    <input type="file" id="file" name="file">
+    <br>
+    <button type="submit">Update Employee</button>
+</form>
+</body>
+</html>

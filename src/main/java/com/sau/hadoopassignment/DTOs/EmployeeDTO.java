@@ -20,7 +20,7 @@ public class EmployeeDTO {
     private Integer comm;
     private String dept;
     private String img;
-    private static final String HDFS_BASE_PATH = "localhost:9870/explorer.html#/user/hadoop/images/";
+    private static final String HDFS_BASE_PATH = "hdfs://localhost:9000/user/hadoop/images/";
 
     // Existing constructors, getters, and setters
 

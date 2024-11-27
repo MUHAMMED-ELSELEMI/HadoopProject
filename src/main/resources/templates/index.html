@@ -1,238 +1,183 @@
 <!DOCTYPE html>
-<html lang="en">
+<html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Employee Management</title>
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <title>Employee List</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f8f9fa;
+        }
+
+        .container {
+            background-color: #fff;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            border-radius: 8px;
+        }
+
+        h1 {
+            color: #007bff;
+            margin-bottom: 30px;
+        }
+
+        .table {
+            width: 100%;
+            margin-bottom: 1rem;
+            background-color: #fff;
+            border-collapse: collapse;
+        }
+
+        .table th, .table td {
+            padding: 15px;
+            text-align: center;
+            vertical-align: middle;
+        }
+
+        .table th {
+            background-color: #007bff;
+            color: #fff;
+            font-weight: bold;
+        }
+
+        .table td {
+            border: 1px solid #dee2e6;
+        }
+
+        .table tbody tr:hover {
+            background-color: #f1f1f1;
+            cursor: pointer;
+        }
+
+        .table td img {
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            object-fit: cover;
+        }
+
+        .table td button {
+            width: 80px;
+            margin: 5px;
+        }
+
+        /* Styling for Add Employee Button */
+        .btn-add {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 14px;
+            border-radius: 5px;
+            text-decoration: none;
+            transition: background-color 0.3s ease, transform 0.3s ease;
+        }
+
+        .btn-add:hover {
+            background-color: #218838;
+            transform: scale(1.05);
+        }
+
+        .btn-add:active {
+            background-color: #1e7e34;
+        }
+
+        /* Styling for Edit and Delete Buttons */
+        .btn-edit, .btn-delete {
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            font-size: 14px;
+            border-radius: 5px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .btn-edit {
+            background-color: #007bff;
+        }
+
+        .btn-edit:hover {
+            background-color: #0056b3;
+            transform: scale(1.05);
+        }
+
+        .btn-edit:active {
+            background-color: #004085;
+        }
+
+        .btn-delete {
+            background-color: #dc3545;
+        }
+
+        .btn-delete:hover {
+            background-color: #c82333;
+            transform: scale(1.05);
+        }
+
+        .btn-delete:active {
+            background-color: #bd2130;
+        }
+
+        /* Responsive styling for smaller screens */
+        @media (max-width: 767px) {
+            .table th, .table td {
+                padding: 10px;
+            }
+
+            .table td img {
+                width: 40px;
+                height: 40px;
+            }
+        }
+    </style>
 </head>
 <body>
-
 <div class="container mt-5">
-    <h2>Employee Management</h2>
-    <button class="btn btn-primary mb-3" data-toggle="modal" data-target="#employeeModal">Add Employee</button>
-    <table class="table table-bordered">
+    <div class="text-right mb-4">
+        <a href="/employees/add" class="btn-add">Add Employee</a>
+    </div>
+    <h1 class="text-center">Employee List</h1>
+    <table class="table table-bordered table-striped">
         <thead>
         <tr>
-            <th>Emp No</th>
+            <th>Employee No</th>
             <th>Name</th>
             <th>Job</th>
             <th>Manager</th>
             <th>Hire Date</th>
             <th>Salary</th>
+            <th>Commission</th>
             <th>Department</th>
-            <th>Actions</th>
+            <th>Image</th>
+            <th>operations</th>
         </tr>
         </thead>
-        <tbody id="employeeTableBody">
-        <!-- Employee rows will be appended here by JavaScript -->
+        <tbody>
+        <tr th:each="employee : ${employees}">
+            <td th:text="${employee.empno}"></td>
+            <td th:text="${employee.ename}"></td>
+            <td th:text="${employee.job}"></td>
+            <td th:text="${employee.mgr}"></td>
+            <td th:text="${employee.hiredate}"></td>
+            <td th:text="${employee.sal}"></td>
+            <td th:text="${employee.comm}"></td>
+            <td th:text="${employee.dept}"></td>
+            <td>
+                <img th:src="@{'/employees/' + ${employee.empno} + '/images'}" alt="Employee Image"/>
+            </td>
+
+            <td>
+                <!-- Edit button -->
+                <a th:href="@{/employees/edit/{empno}(empno=${employee.empno})}" class="btn btn-edit">Edit</a>
+                <!-- Delete button -->
+                <form th:action="@{/employees/delete/{empno}(empno=${employee.empno})}" class="btn-delete" method="post" style="display:inline;">
+                    <button type="submit" class="btn btn-delete" onclick="return confirm('Are you sure you want to delete this employee?');">Delete</button>
+                </form>
+
+            </td>
+        </tr>
         </tbody>
     </table>
 </div>
-
-<!-- Employee Modal -->
-<div class="modal fade" id="employeeModal" tabindex="-1" role="dialog" aria-labelledby="employeeModalLabel" aria-hidden="true">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="employeeModalLabel">Add/Edit Employee</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                <form id="employeeForm">
-                    <!-- Form Fields -->
-                    <div class="form-group">
-                        <label for="empno">Employee No</label>
-                        <input type="number" class="form-control" id="empno" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="ename">Name</label>
-                        <input type="text" class="form-control" id="ename" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="job">Job</label>
-                        <input type="text" class="form-control" id="job" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="mgr">Manager</label>
-                        <select class="form-control" id="mgr"></select>
-                    </div>
-                    <div class="form-group">
-                        <label for="hiredate">Hire Date</label>
-                        <input type="date" class="form-control" id="hiredate" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="sal">Salary</label>
-                        <input type="number" step="0.01" class="form-control" id="sal" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="comm">Commission</label>
-                        <input type="number" class="form-control" id="comm">
-                    </div>
-                    <div class="form-group">
-                        <label for="dept">Department</label>
-                        <select class="form-control" id="dept"></select>
-                    </div>
-                    <div class="form-group">
-                        <label for="img">Image URL</label>
-                        <input type="text" class="form-control" id="img">
-                    </div>
-                    <button type="submit" class="btn btn-primary">Save Employee</button>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
-
-<script>
-    $(document).ready(function() {
-        loadEmployees();
-        loadManagers();
-        loadDepartments();
-    });
-
-    function loadEmployees() {
-        $.ajax({
-            url: "/api/employees",
-            method: "GET",
-            success: function(data) {
-                const tableBody = $("#employeeTableBody");
-                tableBody.empty();
-                data.forEach(employee => {
-                    const row = `
-                        <tr>
-                            <td>${employee.empno}</td>
-                            <td>${employee.ename}</td>
-                            <td>${employee.job}</td>
-                            <td>${employee.mgr ? employee.mgr : 'N/A'}</td>
-                            <td>${employee.hiredate}</td>
-                            <td>${employee.sal}</td>
-                            <td>${employee.dept}</td>
-                            <td>
-                                <button class="btn btn-warning btn-sm" onclick="editEmployee(${employee.empno})">Edit</button>
-                                <button class="btn btn-danger btn-sm" onclick="deleteEmployee(${employee.empno})">Delete</button>
-                            </td>
-                        </tr>
-                    `;
-                    tableBody.append(row);
-                });
-            },
-            error: function() {
-                alert("Error loading employees. Please try again.");
-            }
-        });
-    }
-
-    function loadManagers() {
-        $.ajax({
-            url: "/api/employees", // Assuming this endpoint provides manager data
-            method: "GET",
-            success: function(data) {
-                const mgrSelect = $("#mgr");
-                mgrSelect.empty();
-                mgrSelect.append(`<option value="">Select Manager</option>`);
-                data.forEach(manager => {
-                    mgrSelect.append(`<option value="${manager.empno}">${manager.ename}</option>`);
-                });
-            },
-            error: function() {
-                alert("Error loading managers. Please try again.");
-            }
-        });
-    }
-
-    function loadDepartments() {
-        $.ajax({
-            url: "/api/departments", // Assuming this endpoint provides department data
-            method: "GET",
-            success: function(data) {
-                const deptSelect = $("#dept");
-                deptSelect.empty();
-                deptSelect.append(`<option value="">Select Department</option>`);
-                data.forEach(department => {
-                    deptSelect.append(`<option value="${department.deptno}">${department.dname}</option>`);
-                });
-            },
-            error: function() {
-                alert("Error loading departments. Please try again.");
-            }
-        });
-    }
-
-    // Handle form submission for creating/updating employee
-    $("#employeeForm").submit(function(event) {
-        event.preventDefault();
-        const empno = $("#empno").val();
-        const url = empno ? `/api/employees/${empno}` : "/api/employees";
-        const method = empno ? "PUT" : "POST";
-
-        $.ajax({
-            url: url,
-            method: method,
-            contentType: "application/json",
-            data: JSON.stringify({
-                empno: empno ? parseInt(empno) : undefined, // Only include empno when updating
-                ename: $("#ename").val(),
-                job: $("#job").val(),
-                mgr: $("#mgr").val() ? { empno: parseInt($("#mgr").val()) } : null, // Wrapped in an object
-                hiredate: $("#hiredate").val(),
-                sal: parseFloat($("#sal").val()), // Parse salary as float
-                comm: $("#comm").val() ? parseInt($("#comm").val()) : null, // Nullable
-                dept: { deptno: parseInt($("#dept").val()) }, // Wrapped in an object
-                img: $("#img").val()
-            }),
-            success: function() {
-                $("#employeeModal").modal("hide");
-                loadEmployees(); // Refresh employee list
-            },
-            error: function() {
-                alert("Error saving employee. Please try again.");
-            }
-        });
-    });
-
-
-    function editEmployee(empno) {
-        $.ajax({
-            url: `/api/employees/${empno}`,
-            method: "GET",
-            success: function(employee) {
-                $("#empno").val(employee.empno);
-                $("#ename").val(employee.ename);
-                $("#job").val(employee.job);
-                $("#mgr").val(employee.mgr ? employee.mgr.empno : '');
-                $("#hiredate").val(employee.hiredate);
-                $("#sal").val(employee.sal);
-                $("#comm").val(employee.comm || '');
-                $("#dept").val(employee.dept.deptno);
-                $("#img").val(employee.img);
-                $("#employeeModal").modal("show");
-            },
-            error: function() {
-                alert("Error loading employee. Please try again.");
-            }
-        });
-    }
-
-    function deleteEmployee(empno) {
-        if (confirm("Are you sure you want to delete this employee?")) {
-            $.ajax({
-                url: `/api/employees/${empno}`,
-                method: "DELETE",
-                success: function() {
-                    loadEmployees();
-                },
-                error: function() {
-                    alert("Error deleting employee. Please try again.");
-                }
-            });
-        }
-    }
-</script>
-
 </body>
 </html>

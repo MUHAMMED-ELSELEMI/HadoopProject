@@ -6,8 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 @Entity
 @NoArgsConstructor
@@ -21,8 +20,5 @@ public class Departments {
     private String dname;
     private String loc;
 
-    //@OneToMany(mappedBy = "department", cascade = CascadeType.ALL, orphanRemoval = true)
-    //private List<Employees> employees ;
 
-    // getters and setters
 }

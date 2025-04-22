@@ -1,7 +1,10 @@
 package com.sau.hadoopassignment.Entites;
 
-import jakarta.persistence.*;
+
+import javax.persistence.*;
+
 import lombok.*;
+
 
 import java.io.Serializable;
 import java.util.Date;
@@ -14,6 +17,7 @@ import java.util.List;
 @AllArgsConstructor
 
 @Entity
+@Table(name = "employees")
 public class Employees  {
 
     @Id

@@ -5,14 +5,22 @@ import com.sau.hadoopassignment.Entites.Departments;
 import com.sau.hadoopassignment.Entites.Employees;
 import com.sau.hadoopassignment.Repositories.DepartmentRepository;
 import com.sau.hadoopassignment.Repositories.EmployeeRepository;
+import org.apache.spark.sql.Dataset;
+import org.apache.spark.sql.Row;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import org.apache.spark.sql.Dataset;
+import org.apache.spark.sql.Row;
+import org.apache.spark.sql.SparkSession;
+import com.sau.hadoopassignment.SparkConfig.SparkConfig;
+import static org.apache.spark.sql.functions.*;
 
 import java.io.IOException;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 
+import org.apache.spark.sql.Dataset;
 @Service
 public class EmployeeService {
 
@@ -27,11 +35,41 @@ public class EmployeeService {
 
     public List<EmployeeDTO> getAllEmployees() {
         List<EmployeeDTO> employees = employeeRepository.findAllEmployeesWithDetails();
-        // Optionally set full image path if needed
-        employees.forEach(emp -> emp.setImg(emp.getImg()));
+
+        // Fetch total expenses from Spark
+        Map<Integer, Double> expenseMap = fetchTotalExpenses();
+
+        employees = employees.stream()
+                .filter(emp -> emp.getEmpno() != null)
+                .peek(emp -> emp.setTotal_expense(expenseMap.getOrDefault(emp.getEmpno(), 0.0)))
+                .collect(Collectors.toList());
+
+
         return employees;
     }
+    public Map<Integer, Double> fetchTotalExpenses() {
+        try {
+            SparkSession spark = SparkConfig.getSparkSession();
+            Dataset<Row> expenses = spark.read()
+                    .format("org.apache.spark.sql.cassandra")
+                    .option("keyspace", "my_keyspace")
+                    .option("table", "expenses")
+                    .load();
 
+            Dataset<Row> totalExpenses = expenses.groupBy("empno")
+                    .agg(sum("payment").alias("total_expense"));
+
+            return totalExpenses.collectAsList().stream()
+                    .collect(Collectors.toMap(
+                            row -> row.getInt(0),
+                            row -> row.getDouble(1)
+                    ));
+        } catch (Exception e) {
+            // Log the error and return an empty map
+            System.err.println("Failed to fetch expenses: " + e.getMessage());
+            return Collections.emptyMap();
+        }
+    }
 
     public Optional<EmployeeDTO> getEmployeeById(Integer empno) {
         return employeeRepository.findById(empno)
@@ -119,7 +157,7 @@ public class EmployeeService {
     }
 
     private EmployeeDTO convertToDTO(Employees employee) {
-        return new EmployeeDTO(
+        EmployeeDTO dto = new EmployeeDTO(
                 employee.getEmpno(),
                 employee.getEname(),
                 employee.getJob(),
@@ -130,7 +168,11 @@ public class EmployeeService {
                 employee.getDepartment() != null ? employee.getDepartment().getDname() : null,
                 employee.getImg()
         );
+
+        // Do NOT set total_expense here — it's handled in the service layer after Spark fetch
+        return dto;
     }
+
 
     private Employees convertToEntity(EmployeeDTO employeeDTO) {
         Employees employee = new Employees();

@@ -1,18 +1,23 @@
 package com.sau.hadoopassignment.Entites;
 
-import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.util.*;
+
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.OneToMany;
+import javax.persistence.Table;
+import java.util.List;
 
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
 @Setter
+@Table(name = "departments")
 public class Departments {
 
     @Id
@@ -20,5 +25,7 @@ public class Departments {
     private String dname;
     private String loc;
 
+    @OneToMany(mappedBy = "department")
+    private List<Employees> employees;
 
 }

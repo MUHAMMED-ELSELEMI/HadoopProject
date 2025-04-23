@@ -3,39 +3,75 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Add Employee</title>
+  <title>Add New Employee</title>
+  <link rel="stylesheet" href="/style.css">
 </head>
 <body>
-<h1>Add New Employee</h1>
-<form th:action="@{/employees/add}" method="post" enctype="multipart/form-data">
-  <label for="empno">Employee Number</label>
-  <input type="number" id="empno" name="empno" th:value="${employee.empno}" required>
-  <br>
-  <label for="ename">Employee Name</label>
-  <input type="text" id="ename" name="ename" th:value="${employee.ename}" required>
-  <br>
-  <label for="job">Job</label>
-  <input type="text" id="job" name="job" th:value="${employee.job}" required>
-  <br>
-  <label for="mgr">Manager</label>
-  <input type="text" id="mgr" name="mgr" th:value="${employee.mgr}" required>
-  <br>
-  <label for="hiredate">Hire Date</label>
-  <input type="date" id="hiredate" name="hiredate" th:value="${employee.hiredate}" required>
-  <br>
-  <label for="sal">Salary</label>
-  <input type="number" id="sal" name="sal" th:value="${employee.sal}" required>
-  <br>
-  <label for="comm">Commission</label>
-  <input type="number" id="comm" name="comm" th:value="${employee.comm}">
-  <br>
-  <label for="dept">Department</label>
-  <input type="text" id="dept" name="dept" th:value="${employee.dept}" required>
-  <br>
-  <label for="file">Upload Image</label>
-  <input type="file" id="file" name="file">
-  <br>
-  <button type="submit">Add Employee</button>
-</form>
+<div class="container">
+  <h1>Add New Employee</h1>
+  <form th:action="@{/employees/add}" method="post" enctype="multipart/form-data">
+    <div>
+      <label for="empno">Employee Number</label>
+      <input type="number" id="empno" name="empno" th:value="${employee.empno}" required min="1">
+    </div>
+
+    <div>
+      <label for="ename">Employee Name</label>
+      <input type="text" id="ename" name="ename" th:value="${employee.ename}" required>
+    </div>
+
+    <div>
+      <label for="job">Job</label>
+      <input type="text" id="job" name="job" th:value="${employee.job}" required>
+    </div>
+
+    <div>
+      <label for="mgr">Manager</label>
+      <select id="mgr" name="mgr" required>
+        <option value="">Select Manager</option>
+        <!-- Populate this select with the list of employees passed from the backend -->
+        <option th:each="emp : ${employees}"
+                th:value="${emp.ename}"
+                th:text="${emp.ename}"></option>
+      </select>
+    </div>
+
+    <div>
+      <label for="hiredate">Hire Date</label>
+      <input type="date" id="hiredate" name="hiredate" th:value="${employee.hiredate}" required>
+    </div>
+
+    <div>
+      <label for="sal">Salary</label>
+      <input type="number" id="sal" name="sal" th:value="${employee.sal}" required min="0">
+    </div>
+
+    <div>
+      <label for="comm">Commission</label>
+      <input type="number" id="comm" name="comm" th:value="${employee.comm}" min="0">
+    </div>
+
+    <div>
+      <label for="dept">Department</label>
+      <select id="dept" name="dept" required>
+        <option value="">Select Department</option>
+        <!-- Populate this select with the list of departments passed from the backend -->
+        <option th:each="dept : ${departments}"
+                th:value="${dept.dname}"
+                th:text="${dept.dname}"></option>
+
+      </select>
+    </div>
+
+
+    <div>
+      <label for="file">Upload Image</label>
+      <input type="file" id="file" name="file" accept="image/*">
+    </div>
+
+    <button type="submit">Add Employee</button>
+    <a href="/" class="btn btn-back">Back to List</a>
+  </form>
+</div>
 </body>
 </html>

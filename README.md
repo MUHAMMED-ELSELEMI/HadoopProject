@@ -1,3 +1,7 @@
+![image](https://github.com/user-attachments/assets/a6612a28-4248-49b7-97eb-468a472fc60e)
+![image](https://github.com/user-attachments/assets/3e14e315-6c65-48e7-88c3-3c59c1d3e761)
+
+
 a) Employee and department data will be read from the database [(see Figure 1)]( https://github.com/ozmen54/SWE307-2023/blob/main/Pro1/pro-1.png)  [(CSV files)](https://github.com/ozmen54/SWE307-2023/tree/main/Pro1/data)  . Implement CRUD operations on employee table.
 
 
